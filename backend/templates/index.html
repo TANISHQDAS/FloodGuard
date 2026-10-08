@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloodGuard – Smart River Water Level Monitoring & Early Warning System</title>
+    <!-- Chart.js for real-time telemetry graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header class="navbar">
+        <div class="header-container">
+            <div class="brand">
+                <span class="brand-icon">🌊</span>
+                <div>
+                    <h1>FloodGuard</h1>
+                    <span class="subtext">Smart River Water Level Monitoring & Early Warning System (Open Hardware)</span>
+                </div>
+            </div>
+            <div class="system-status-box">
+                <span id="connection-dot" class="dot-online"></span>
+                <span id="connection-status">ESP32 Connected</span>
+                <span class="divider">|</span>
+                <span id="last-updated">Updated: Just now</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Rapid Rise Alert Banner (Shown dynamically when rate of rise exceeds threshold) -->
+    <div id="rapid-rise-banner" class="alert-banner hidden">
+        <div class="alert-content">
+            <span class="alert-icon">⚠️</span>
+            <div>
+                <strong>RAPID RISE DETECTED!</strong>
+                <span id="rapid-rise-details">Water level is surging unusually fast. Early preparation advisory.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor Error Banner (Shown when sensor disconnected or out of range) -->
+    <div id="sensor-error-banner" class="sensor-error-banner hidden">
+        <div class="alert-content">
+            <span class="alert-icon">❌</span>
+            <div>
+                <strong>SENSOR ERROR:</strong>
+                <span id="sensor-error-msg">Ultrasonic reading timeout or out of range. Check physical connections.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="dashboard-grid">
+
+        <!-- Left Column: Metrics and Gauges -->
+        <section class="metrics-column">
+            
+            <!-- Primary Status Cards -->
+            <div class="cards-row">
+                <!-- Water Level Card -->
+                <div class="card metric-card">
+                    <div class="card-label">Current Water Level</div>
+                    <div class="metric-value-container">
+                        <span id="water-level-cm" class="metric-large">--</span>
+                        <span class="metric-unit">cm</span>
+                    </div>
+                    <div class="metric-sub">
+                        Depth Capacity: <strong id="water-level-percent">--%</strong>
+                    </div>
+                </div>
+
+                <!-- Alert Level Card -->
+                <div class="card metric-card">
+                    <div class="card-label">Alert Status</div>
+                    <div id="alert-badge" class="badge-status badge-normal">NORMAL</div>
+                    <div class="metric-sub" id="alert-subtext">Safe water level conditions</div>
+                </div>
+
+                <!-- Rainfall Status Card -->
+                <div class="card metric-card">
+                    <div class="card-label">Rainfall Condition</div>
+                    <div id="rain-status" class="rain-status-text">No Rain</div>
+                    <div class="metric-sub">Surface Rain Sensor</div>
+                </div>
+
+                <!-- Rate of Rise Card -->
+                <div class="card metric-card">
+                    <div class="card-label">Rate of Rise</div>
+                    <div class="metric-value-container">
+                        <span id="rate-of-rise" class="metric-large">0.0</span>
+                        <span class="metric-unit">cm/min</span>
+                    </div>
+                    <div class="metric-sub" id="slope-subtext">Stable trend</div>
+                </div>
+            </div>
+
+            <!-- Visual Cross-Section Tank Representation -->
+            <div class="card tank-visualization-card">
+                <h3>River Cross-Section / Demo Tank Level</h3>
+                <div class="tank-container">
+                    <div class="tank-scale">
+                        <span>100% (Danger: 85%)</span>
+                        <span>75%</span>
+                        <span>50% (Warning: 60%)</span>
+                        <span>25%</span>
+                        <span>0% (Riverbed)</span>
+                    </div>
+                    <div class="tank-body">
+                        <!-- Threshold Markers -->
+                        <div class="threshold-line danger-line" style="bottom: 85%;">
+                            <span class="threshold-tag">DANGER (85%)</span>
+                        </div>
+                        <div class="threshold-line warning-line" style="bottom: 60%;">
+                            <span class="threshold-tag">WARNING (60%)</span>
+                        </div>
+                        <!-- Water Fill Element -->
+                        <div id="water-fill" class="water-column" style="height: 25%;">
+                            <div class="water-wave"></div>
+                            <span id="water-fill-label" class="water-fill-label">10.0 cm</span>
+                        </div>
+                    </div>
+                    <div class="tank-meta">
+                        <div class="meta-item">Sensor Distance: <strong id="sensor-distance">-- cm</strong></div>
+                        <div class="meta-item">Calibrated Tank Depth: <strong id="configured-depth">40.0 cm</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Trend Graph -->
+            <div class="card graph-card">
+                <div class="card-header-flex">
+                    <h3>Water Level Trend & Thresholds</h3>
+                    <span class="graph-legend-note">Live Real-Time Stream (Last 40 Readings)</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="telemetryChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Alert History, Controls & Make-A-Thon Testing -->
+        <section class="side-column">
+
+            <!-- Audio Alarm Chime Control -->
+            <div class="card control-card">
+                <h3>Hardware Simulation & Audio</h3>
+                <div class="audio-control-flex">
+                    <button id="toggle-audio-btn" class="btn btn-secondary">
+                        <span id="audio-icon">🔇</span> Enable Web Buzzer
+                    </button>
+                    <span class="helper-text">Simulate physical active buzzer through laptop speakers</span>
+                </div>
+            </div>
+
+            <!-- Make-A-Thon Demonstration Testing Tools -->
+            <div class="card demo-card">
+                <div class="demo-badge">Make-A-Thon Evaluation Tools</div>
+                <h3>Demonstration Controls</h3>
+                <p class="demo-desc">Inject live scenarios into the dashboard to demonstrate the system behavior to judges:</p>
+                <div class="demo-btn-group">
+                    <button id="btn-toggle-sim" class="btn btn-primary">Start Autonomous Simulation</button>
+                    <button id="btn-surge-test" class="btn btn-warning">Inject Flash Flood Surge (+10 cm)</button>
+                </div>
+                <div class="simulation-status-text">
+                    Simulator: <strong id="sim-status-label">Idle (Waiting for ESP32)</strong>
+                </div>
+            </div>
+
+            <!-- System Warning & Event Log -->
+            <div class="card alerts-history-card">
+                <div class="card-header-flex">
+                    <h3>Warning & Incident Log</h3>
+                    <button id="refresh-alerts-btn" class="btn-text">Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="alert-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>Level</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-tbody">
+                            <tr>
+                                <td colspan="4" class="text-center">No alerts logged yet. System in normal state.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Threshold Calibration Settings -->
+            <div class="card settings-card">
+                <h3>Calibration & Threshold Settings</h3>
+                <form id="config-form">
+                    <div class="form-group">
+                        <label for="input-total-depth">Total Riverbed/Tank Depth (cm):</label>
+                        <input type="number" id="input-total-depth" step="0.5" min="5" max="500" value="40.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-warning-percent">Warning Threshold (%):</label>
+                        <input type="number" id="input-warning-percent" min="10" max="95" value="60" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-danger-percent">Danger Threshold (%):</label>
+                        <input type="number" id="input-danger-percent" min="20" max="99" value="85" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-rapid-rise">Rapid Rise Threshold (cm/min):</label>
+                        <input type="number" id="input-rapid-rise" step="0.5" min="0.5" max="50" value="5.0" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-full">Save Calibration Parameters</button>
+                </form>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>FloodGuard Open Hardware Disaster Management Project • Designed for Student Make-A-Thon • Low-Cost ESP32 Architecture</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
