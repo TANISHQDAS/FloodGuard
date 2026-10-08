@@ -193,14 +193,14 @@ export default function DemoVideoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#0b0f17] text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Navigation bar */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/"
-            className="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
+            className="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Back to Dashboard</span>
@@ -209,14 +209,14 @@ export default function DemoVideoPage() {
           <div className="flex items-center space-x-3">
             <Link
               href="/report"
-              className="inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+              className="inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
             >
               <FileText className="h-3.5 w-3.5" />
               <span>IEEE Project Report</span>
             </Link>
             <Link
               href="/code"
-              className="inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+              className="inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
             >
               <span>Source Code</span>
             </Link>
@@ -224,15 +224,15 @@ export default function DemoVideoPage() {
         </div>
 
         {/* Video Player Display Container */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-sm">
           
           {/* Main 16:9 Interactive Video Stage */}
-          <div className="aspect-video bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-6 md:p-8 flex flex-col justify-between relative overflow-hidden border-b border-slate-800">
+          <div className="aspect-video bg-[#090d16] p-6 md:p-8 flex flex-col justify-between relative overflow-hidden border-b border-slate-800">
             
             {/* Overlay Watermark / Developer Byline */}
             <div className="flex items-center justify-between text-xs z-20">
-              <div className="flex items-center space-x-2 bg-slate-950/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-800">
-                <ShieldAlert className="h-4 w-4 text-cyan-400" />
+              <div className="flex items-center space-x-2 bg-slate-900/90 px-3 py-1.5 rounded border border-slate-800">
+                <ShieldAlert className="h-4 w-4 text-blue-400" />
                 <span className="font-bold text-white">FloodGuard Demo Video</span>
                 <span className="text-slate-500">|</span>
                 <span className="text-slate-400 font-mono">{active.time}</span>

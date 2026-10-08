@@ -11,7 +11,7 @@ import { PredictiveModelPanel } from '@/components/PredictiveModelPanel';
 import { EvacuationMapPanel } from '@/components/EvacuationMapPanel';
 import { AlertLogTable } from '@/components/AlertLogTable';
 import { StationConfigPanel } from '@/components/StationConfigPanel';
-import { AlertTriangle, AlertOctagon, Zap, Shield, Radio, RefreshCw } from 'lucide-react';
+import { AlertTriangle, AlertOctagon, Zap, Shield, Radio, RefreshCw, Terminal, Activity } from 'lucide-react';
 
 export default function DashboardPage() {
   const [stations, setStations] = useState<MonitoringStation[]>([]);
@@ -30,14 +30,14 @@ export default function DashboardPage() {
   const activeStation = stations.find((st) => st.id === selectedStationId) || stations[0];
   const activeReading = activeStation?.currentReading;
 
-  // Initial load
+  // Initial load and periodic polling
   useEffect(() => {
     loadAllData();
     const interval = setInterval(loadAllData, 3000);
     return () => clearInterval(interval);
   }, [selectedStationId]);
 
-  // Audio tone synthesizer function
+  // Audio tone synthesizer function (2.4 kHz piezoelectric tone emulator)
   const playBuzzerTone = (freq = 2400, duration = 0.2) => {
     if (!buzzerEnabled) return;
     try {
@@ -123,7 +123,7 @@ export default function DashboardPage() {
       if (!activeStation) return;
 
       const totalDepth = activeStation.totalDepthCm;
-      // Cycle: Dry -> Rain -> Surge -> Danger -> Recession
+      // Cycle: Dry Baseflow -> Rain Inflow -> Wave Surge -> Flood Danger -> Channel Recession
       const cycle = simStep % 40;
       let newLevel = activeStation.currentReading.waterLevelCm;
       let rain: any = 'No Rain';
@@ -236,15 +236,15 @@ export default function DashboardPage() {
 
   if (loading && stations.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 space-y-3">
-        <RefreshCw className="h-8 w-8 text-cyan-400 animate-spin" />
-        <p className="text-sm font-medium">Connecting to FloodGuard Catchment Telemetry Network...</p>
+      <div className="min-h-screen bg-[#0b0f17] flex flex-col items-center justify-center text-slate-400 space-y-3">
+        <RefreshCw className="h-6 w-6 text-blue-400 animate-spin" />
+        <p className="text-xs font-mono">Initializing connection to catchment telemetry nodes...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-[#0b0f17] flex flex-col">
       {/* Top Header */}
       <Header
         activeStationCount={stations.length}
@@ -254,46 +254,46 @@ export default function DashboardPage() {
         onToggleSimulate={() => setIsSimulating(!isSimulating)}
       />
 
-      {/* Rapid Rise Banner */}
+      {/* Rapid Rise Alert Banner */}
       {activeReading?.isRapidRise && (
-        <div className="bg-amber-950 border-y border-amber-600/80 px-4 py-2.5 text-amber-200">
-          <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center space-x-2 text-xs sm:text-sm font-bold">
-              <AlertTriangle className="h-4 w-4 text-amber-400 animate-pulse shrink-0" />
-              <span>RAPID WATER RISE DETECTED ON {activeStation.id}:</span>
-              <span className="font-mono text-amber-300">
-                +{activeReading.rateOfRiseCmPerMin.toFixed(1)} cm/min slope velocity
+        <div className="bg-amber-950/90 border-y border-amber-600/80 px-4 py-2 text-amber-200">
+          <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="flex items-center space-x-2 font-bold font-mono">
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+              <span>EARLY WARNING: RAPID STAGE RISE DETECTED ON {activeStation.id}</span>
+              <span className="text-amber-300 font-semibold">
+                (+{activeReading.rateOfRiseCmPerMin.toFixed(1)} cm/min slope)
               </span>
             </div>
-            <span className="text-xs bg-amber-900/80 px-2 py-0.5 rounded border border-amber-700">
-              Early Warning Stage Active Prior to Danger Threshold
+            <span className="text-[11px] font-mono bg-amber-900/90 px-2 py-0.5 rounded border border-amber-700">
+              STAGE ELEVATION APPROACHING CRITICAL THRESHOLD
             </span>
           </div>
         </div>
       )}
 
-      {/* Critical Danger Banner */}
+      {/* Critical Danger Alert Banner */}
       {activeReading?.alertLevel === 'DANGER' && (
-        <div className="bg-rose-950 border-y border-rose-600 px-4 py-2.5 text-rose-200 animate-pulse">
-          <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center space-x-2 text-xs sm:text-sm font-extrabold">
+        <div className="bg-rose-950 border-y border-rose-600 px-4 py-2.5 text-rose-100">
+          <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="flex items-center space-x-2 font-bold font-mono">
               <AlertOctagon className="h-4 w-4 text-rose-400 shrink-0" />
-              <span>CRITICAL FLOOD SURGE ON {activeStation.name}!</span>
-              <span className="font-mono text-white">
-                {activeReading.waterLevelCm.toFixed(1)}cm ({Math.round(activeReading.waterLevelPercent)}%)
+              <span>CRITICAL FLOOD STAGE EXCEEDED ON {activeStation.name}</span>
+              <span className="text-white font-bold">
+                [{activeReading.waterLevelCm.toFixed(1)} cm / {Math.round(activeReading.waterLevelPercent)}% capacity]
               </span>
             </div>
-            <span className="text-xs bg-rose-900 px-2.5 py-0.5 rounded border border-rose-700 font-bold uppercase">
-              Acoustic Sirens & Evacuation Corridors Activated
+            <span className="text-[11px] font-mono bg-rose-900 px-2.5 py-0.5 rounded border border-rose-700 font-bold uppercase tracking-wider">
+              ACOUSTIC SIREN & EVACUATION CORRIDOR DISPATCH ACTIVE
             </span>
           </div>
         </div>
       )}
 
-      {/* Main Grid Content */}
-      <main className="max-w-7xl mx-auto w-full px-4 lg:px-8 py-6 space-y-6 flex-1">
+      {/* Main Telemetry & Control Grid */}
+      <main className="max-w-7xl mx-auto w-full px-4 lg:px-8 py-5 space-y-4 flex-1">
         
-        {/* Multi-Station Node Selector */}
+        {/* Monitoring Station Nodes */}
         <StationSelector
           stations={stations}
           selectedStationId={selectedStationId}
@@ -305,8 +305,8 @@ export default function DashboardPage() {
           <MetricCards station={activeStation} reading={activeReading} />
         )}
 
-        {/* Real-time Hydrograph & Visual Cross-Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Real-time Hydrograph & Acoustic Sounding Cross-Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
             {activeStation && (
               <TelemetryChart history={history} station={activeStation} />
@@ -319,39 +319,39 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Demonstration Surge Test Trigger Bar */}
-        <div className="bg-gradient-to-r from-slate-900 to-indigo-950/60 border border-indigo-900/60 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        {/* Hydrological Bench Simulation Controller */}
+        <div className="bg-[#111827] border border-slate-800 rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center space-x-1.5">
-              <Zap className="h-4 w-4 text-amber-400" />
-              <span>Make-A-Thon Demonstration & Stress-Testing Console</span>
+            <h4 className="text-xs font-mono font-bold text-slate-200 flex items-center space-x-1.5 uppercase tracking-wide">
+              <Terminal className="h-3.5 w-3.5 text-blue-400" />
+              <span>Hydrological Simulation & Bench Testing Controller</span>
             </h4>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Instantly simulate real physical rain runoff and flash flood surges to evaluate alerts
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Inject synthetic catchment storm runoff or run cyclic hydrograph transitions to evaluate early warnings
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <button
               onClick={handleInjectSurge}
-              className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md shadow-amber-950 transition-all flex items-center space-x-1.5"
+              className="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white text-xs font-mono font-semibold shadow-sm transition-colors flex items-center space-x-1.5"
             >
-              <Zap className="h-3.5 w-3.5" />
-              <span>Inject Flash Flood Surge (+15cm)</span>
+              <Zap className="h-3 w-3" />
+              <span>Inject Flash Runoff (+15cm)</span>
             </button>
             <button
               onClick={() => setIsSimulating(!isSimulating)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold border transition-colors ${
                 isSimulating
                   ? 'bg-rose-950 text-rose-300 border-rose-800'
-                  : 'bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 border-indigo-700'
+                  : 'bg-slate-800 hover:bg-slate-750 text-slate-200 border-slate-700'
               }`}
             >
-              {isSimulating ? 'Stop Auto Cycle' : 'Start Multi-Stage Cycle'}
+              {isSimulating ? 'Stop Auto Hydrograph' : 'Start Multi-Stage Cycle'}
             </button>
           </div>
         </div>
 
-        {/* Hydrological Risk Model (Inspired by Apollo-Blaze ML concept) */}
+        {/* Hydrological Runoff & Crest Arrival Forecast */}
         {activeReading && (
           <PredictiveModelPanel
             stationId={selectedStationId}
@@ -379,11 +379,17 @@ export default function DashboardPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-900/80 py-4 px-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <span>FloodGuard Enterprise v2.0 • Production Open Hardware Architecture</span>
-          <span className="font-mono">ESP32 Telemetry API Endpoint: /api/telemetry • Vercel Ready</span>
+      {/* Engineering Footer */}
+      <footer className="border-t border-slate-800 bg-[#0d131f] py-4 px-4 text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 font-mono text-[11px]">
+          <div>
+            <span className="text-slate-200 font-semibold">FloodGuard Open Hardware Project</span> • Developed by{' '}
+            <strong className="text-white">Tanishq Das</strong> (23BAI10587) &{' '}
+            <strong className="text-white">Abhi Pandey</strong> (23BAI10909) • 4th Year B.Tech, VIT Bhopal University
+          </div>
+          <div className="text-slate-500">
+            CERN-OHL-S Licence • ESP32 Ingestion: <code className="text-slate-400">/api/telemetry</code>
+          </div>
         </div>
       </footer>
     </div>

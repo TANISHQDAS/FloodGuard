@@ -186,7 +186,7 @@ ESP32 GPIO Pinouts:
   const current = files[activeTab];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#0b0f17] text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Top bar */}
@@ -216,33 +216,33 @@ ESP32 GPIO Pinouts:
         </div>
 
         {/* Title */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="bg-[#111827] border border-slate-800 rounded-lg p-5">
           <div className="flex items-center space-x-3 mb-2">
-            <div className="h-9 w-9 rounded-lg bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+            <div className="h-9 w-9 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400">
               <Code className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">FloodGuard Source Code & Hardware Repository</h1>
+              <h1 className="text-lg font-bold text-white font-sans">FloodGuard Source Code & Firmware Architecture</h1>
               <p className="text-xs text-slate-400">
-                Developed by <strong>Tanishq Das</strong> (Reg. No: 23BAI10587) and <strong>Abhi Pandey</strong> (Reg. No: 23BAI10909) &bull; 4th Year, VIT Bhopal University
+                Developed by <strong className="text-slate-200">Tanishq Das</strong> (Reg. No: 23BAI10587) and <strong className="text-slate-200">Abhi Pandey</strong> (Reg. No: 23BAI10909) &bull; 4th Year B.Tech, VIT Bhopal University
               </p>
             </div>
           </div>
-          <p className="text-xs text-slate-300">
-            All firmware modules, voltage divider schematics, and cloud Next.js serverless route handlers are fully open-source under CERN-OHL-S.
+          <p className="text-xs text-slate-400">
+            Open-hardware ESP32 firmware modules, calibrated sensor signal filters, and Next.js serverless route handlers licensed under CERN-OHL-S.
           </p>
         </div>
 
         {/* File Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-2">
+        <div className="flex flex-wrap gap-1.5 border-b border-slate-800 pb-2">
           {Object.entries(files).map(([key, val]) => (
             <button
               key={key}
               onClick={() => setActiveTab(key as any)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors ${
                 activeTab === key
-                  ? 'bg-cyan-600 text-white shadow'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-[#111827] text-slate-400 hover:text-slate-200 border border-slate-800'
               }`}
             >
               {val.name}
@@ -251,12 +251,12 @@ ESP32 GPIO Pinouts:
         </div>
 
         {/* Code Viewer */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-          <div className="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+        <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-[#0d131f] px-4 py-2 border-b border-slate-800 flex items-center justify-between">
             <span className="text-xs font-mono text-slate-400">{current.path}</span>
             <button
               onClick={() => copyCode(current.name, current.code)}
-              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-sans transition-all"
+              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-sans transition-colors"
             >
               {copiedFile === current.name ? (
                 <>
@@ -271,7 +271,7 @@ ESP32 GPIO Pinouts:
               )}
             </button>
           </div>
-          <pre className="p-4 overflow-x-auto text-xs font-mono text-cyan-200 bg-slate-950/80 leading-relaxed max-h-[550px]">
+          <pre className="p-4 overflow-x-auto text-xs font-mono text-slate-200 bg-[#090d16] leading-relaxed max-h-[550px]">
             <code>{current.code}</code>
           </pre>
         </div>
